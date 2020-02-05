@@ -6,7 +6,7 @@ Code for extracting MNIST images based on https://medium.com/@mannasiladittya/co
 import data
 from perceptron import Perceptron
 from mnist.loader import MNIST
-import random
+from random import random
 import datetime
 import numpy as np
 
@@ -14,9 +14,10 @@ ETA = 0.2
 ALPHA = 0.9
 LOGFILE = 'eta01.txt'
 CLASSES = 10
-INPUT_SIZE = 2
+TOY_INPUT_SIZE = 2
 HIDDEN_LAYERS = 1
 HIDDEN_NODES = 2
+INPUT_SIZE = 784
 
 
 def sigmoid(x):
@@ -25,9 +26,9 @@ def sigmoid(x):
 
 def toy():
     # create hidden layer
-    hidden_weights = np.full((HIDDEN_NODES, INPUT_SIZE + 1), .1)
+    hidden_weights = np.full((HIDDEN_NODES, TOY_INPUT_SIZE + 1), .1)
     # create output later
-    output_weights = np.full(INPUT_SIZE + 1, .1)
+    output_weights = np.full(TOY_INPUT_SIZE + 1, .1)
     # create training images
     train_images = np.array([np.array([1, 0]), np.array([0, 1])])
     # Append 1s
@@ -63,9 +64,8 @@ def toy():
         print(f'{n}th hidden_weights: {hidden_weights[n]}')
 
 
-
 if __name__ == '__main__':
-    """
+    # get MNIST data
     mndata = MNIST('./images/')
     train_images, train_labels = mndata.load_training()
     test_images, test_labels = mndata.load_testing()
@@ -73,5 +73,29 @@ if __name__ == '__main__':
     train_data.load(60000, train_images, train_labels)
     test_data = data.Data()
     test_data.load(10000, test_images, test_labels)
-    """
-    toy()
+    # create hidden layer (weights from hidden to input)
+    hidden_weights = np.random.rand(HIDDEN_NODES, INPUT_SIZE + 1) - .5
+    hidden_moment = np.zeros((HIDDEN_NODES, INPUT_SIZE + 1))
+    # create output layer (weights from output to hidden)
+    output_weights = np.random.rand(CLASSES, HIDDEN_NODES + 1) - .5
+    output_moment = np.zeros((CLASSES, HIDDEN_NODES + 1))
+    # begin training
+    for i in range(1):
+        # begin forward feed
+        hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
+        # Append 1 for bias in hidden layer
+        bias = np.ones(1, dtype=np.uint8)
+        hidden_sums = np.concatenate((hidden_sums, bias), axis=0)
+        print(f'h_sum: {hidden_sums}')
+        output = sigmoid(np.dot(hidden_sums, np.transpose(output_weights)))
+        print(f'output:{output}')
+        # set target values
+        target_matrix = np.full(CLASSES, .1)
+        target_matrix[train_data.labels[i]] = .9
+        # find delta for output nodes
+        d_output = np.multiply(np.multiply(output, (1 - output)), (target_matrix - output))
+        print(f'd_output:{d_output}')
+        # find delta for hidden nodes
+        d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights))
+        print(f'd_hidden: {d_hidden}')
+
