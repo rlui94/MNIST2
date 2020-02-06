@@ -85,9 +85,9 @@ if __name__ == '__main__':
         hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
         # Append 1 for bias in hidden layer
         bias = np.ones(1, dtype=np.uint8)
-        hidden_sums = np.concatenate((hidden_sums, bias), axis=0)
+        hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
         print(f'h_sum: {hidden_sums}')
-        output = sigmoid(np.dot(hidden_sums, np.transpose(output_weights)))
+        output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
         print(f'output:{output}')
         # set target values
         target_matrix = np.full(CLASSES, .1)
@@ -96,6 +96,20 @@ if __name__ == '__main__':
         d_output = np.multiply(np.multiply(output, (1 - output)), (target_matrix - output))
         print(f'd_output:{d_output}')
         # find delta for hidden nodes
-        d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights))
+        d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights[:,:HIDDEN_NODES]))
         print(f'd_hidden: {d_hidden}')
+        # find weight change for hidden to output
+        d_hidden_to_output = np.multiply(ETA, np.outer(d_output, hidden_sums_b)) + np.multiply(ALPHA, output_moment)
+        print(f'h_to_o:{d_hidden_to_output}')
+        # store changes as momentum
+        output_moment = d_hidden_to_output
+        # adjust weights
+        output_weights += d_hidden_to_output
+        # find weight change for input to hidden
+        d_input_to_hidden = np.multiply(ETA, np.outer(d_hidden, train_data.images[i])) + np.multiply(ALPHA, hidden_moment)
+        # store changes as momentum
+        hidden_moment = d_input_to_hidden
+        # adjust weights
+        hidden_weights += d_input_to_hidden
+
 
