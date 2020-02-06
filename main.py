@@ -10,11 +10,11 @@ import numpy as np
 
 ETA = 0.1
 ALPHA = 0.9
-LOGFILE = 'hidden20.txt'
+LOGFILE = 'quarter.txt'
 CLASSES = 10
 TOY_INPUT_SIZE = 2
 HIDDEN_LAYERS = 1
-HIDDEN_NODES = 20
+HIDDEN_NODES = 100
 INPUT_SIZE = 784
 EPOCHS = 50
 
@@ -122,7 +122,8 @@ if __name__ == '__main__':
     train_images, train_labels = mndata.load_training()
     test_images, test_labels = mndata.load_testing()
     train_data = data.Data()
-    train_data.load(60000, train_images, train_labels)
+    # train_data.load(60000, train_images, train_labels)
+    train_data.load_num(60000, 15000, train_images, train_labels)
     test_data = data.Data()
     test_data.load(10000, test_images, test_labels)
     # create hidden layer (weights from hidden to input)

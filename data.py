@@ -25,3 +25,20 @@ class Data:
         self.labels = labels
         bias = np.ones((size, 1), dtype=np.float16)
         self.images = np.concatenate((self.images, bias), axis=1)  # concatenate matrix of 1s for bias
+
+    def load_num(self, size, portion, images, labels):
+        """
+        Use only first portion of the data
+        :param portion: portion of data to use from 0 to portion
+        :param size: size of full input
+        :param images: output of MNIST(path).load
+        :param labels: output of MNIST(path).load
+        :return:
+        """
+        self.size = size
+        self.images = np.asarray(images, dtype=np.float16).reshape(size, 784) / 255  # divide to avoid huge weights
+        self.labels = labels
+        bias = np.ones((size, 1), dtype=np.float16)
+        self.images = np.concatenate((self.images, bias), axis=1)  # concatenate matrix of 1s for bias
+        self.images = self.images[:portion]
+        self.size = portion
