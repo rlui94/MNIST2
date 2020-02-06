@@ -10,13 +10,13 @@ import numpy as np
 
 ETA = 0.1
 ALPHA = 0.9
-LOGFILE = 'eta01.txt'
+LOGFILE = 'hidden20.txt'
 CLASSES = 10
 TOY_INPUT_SIZE = 2
 HIDDEN_LAYERS = 1
-HIDDEN_NODES = 2
+HIDDEN_NODES = 20
 INPUT_SIZE = 784
-EPOCHS = 1
+EPOCHS = 50
 
 
 def sigmoid(x):
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     accuracy = np.array([0, train_acc, test_acc])
     print(f'Initial accuracy: {train_acc} / {test_acc}')
     for e in range(EPOCHS):
-        for i in range(3):
+        for i in range(train_data.size):
             # begin forward feed
             hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
             # Append 1 for bias in hidden layer
