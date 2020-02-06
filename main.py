@@ -94,6 +94,28 @@ def check_accuracy(data, hidden_weights, output_weights):
     return correct/data.size
 
 
+def make_conf_matrix(data, hidden_weights, output_weights):
+    """
+    Creates confusion matrix on the given data set
+    :param data: dataset as Data object
+    :param hidden_weights: hidden weights as np array
+    :param output_weights: output weights as np array
+    :return: np confusion matrix
+    """
+    matrix = np.zeros((CLASSES, CLASSES))
+    for i in range(data.size):
+        # begin forward feed
+        hidden_sums = sigmoid(np.dot(data.images[i], np.transpose(hidden_weights)))
+        # Append 1 for bias in hidden layer
+        bias = np.ones(1, dtype=np.uint8)
+        hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
+        output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
+        predict = np.argmax(output)
+        matrix[predict, data.labels[i]] += 1
+    return matrix
+
+
+
 if __name__ == '__main__':
     # get MNIST data
     mndata = MNIST('./images/')
@@ -145,6 +167,13 @@ if __name__ == '__main__':
         test_acc = check_accuracy(test_data, hidden_weights, output_weights)
         print(f'Epoch {e + 1} Train/Test accuracy: {train_acc} / {test_acc}')
         np.append(accuracy, np.array([e + 1, train_acc, test_acc]))
+    matrix = make_conf_matrix(test_data, hidden_weights, output_weights)
+    print(f'Accuracy: {accuracy}')
+    print(f'Confusion Matrix: {matrix}')
     with open(LOGFILE, 'a') as file:
+        file.write('Accuracy per Epoch:')
         file.write(str(accuracy))
+        file.write('\nConfusion Matrix:')
+        file.write(str(matrix))
+
 
