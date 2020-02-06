@@ -4,10 +4,8 @@ Code for extracting MNIST images based on https://medium.com/@mannasiladittya/co
 """
 
 import data
-from perceptron import Perceptron
 from mnist.loader import MNIST
 from random import random
-import datetime
 import numpy as np
 
 ETA = 0.1
@@ -22,10 +20,19 @@ EPOCHS = 1
 
 
 def sigmoid(x):
+    """
+    sigmoid squshing function
+    :param x: number to pass through squashing function
+    :return: number after squashing
+    """
     return 1 / (1 + np.exp(-x))
 
 
 def toy():
+    """
+    Test MLP using example in slides for practice
+    :return:
+    """
     # create hidden layer
     hidden_weights = np.full((HIDDEN_NODES, TOY_INPUT_SIZE + 1), .1)
     # create output later
@@ -66,6 +73,13 @@ def toy():
 
 
 def check_accuracy(data, hidden_weights, output_weights):
+    """
+    Checks accuracy on provided dataset
+    :param data: dataset as Data object
+    :param hidden_weights: hidden weights as np array
+    :param output_weights: output weights as np array
+    :return: accuracy of MLP on dataset as a decimal
+    """
     correct = 0
     for i in range(data.size):
         # begin forward feed
