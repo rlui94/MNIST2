@@ -10,7 +10,7 @@ from random import random
 import datetime
 import numpy as np
 
-ETA = 0.2
+ETA = 0.1
 ALPHA = 0.9
 LOGFILE = 'eta01.txt'
 CLASSES = 10
@@ -18,6 +18,7 @@ TOY_INPUT_SIZE = 2
 HIDDEN_LAYERS = 1
 HIDDEN_NODES = 2
 INPUT_SIZE = 784
+EPOCHS = 1
 
 
 def sigmoid(x):
@@ -95,33 +96,41 @@ if __name__ == '__main__':
     output_weights = np.random.rand(CLASSES, HIDDEN_NODES + 1) - .5
     output_moment = np.zeros((CLASSES, HIDDEN_NODES + 1))
     # begin training
-    print(f'Initial accuracy: {check_accuracy(train_data, hidden_weights, output_weights)}')
-    for i in range(3):
-        # begin forward feed
-        hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
-        # Append 1 for bias in hidden layer
-        bias = np.ones(1, dtype=np.uint8)
-        hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
-        output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
-        # set target values
-        target_matrix = np.full(CLASSES, .1)
-        target_matrix[train_data.labels[i]] = .9
-        # find delta for output nodes
-        d_output = np.multiply(np.multiply(output, (1 - output)), (target_matrix - output))
-        # find delta for hidden nodes
-        d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights[:,:HIDDEN_NODES]))
-        # find weight change for hidden to output
-        d_hidden_to_output = np.multiply(ETA, np.outer(d_output, hidden_sums_b)) + np.multiply(ALPHA, output_moment)
-        # store changes as momentum
-        output_moment = d_hidden_to_output
-        # adjust weights
-        output_weights += d_hidden_to_output
-        # find weight change for input to hidden
-        d_input_to_hidden = np.multiply(ETA, np.outer(d_hidden, train_data.images[i])) + np.multiply(ALPHA, hidden_moment)
-        # store changes as momentum
-        hidden_moment = d_input_to_hidden
-        # adjust weights
-        hidden_weights += d_input_to_hidden
-        print(f'{i} accuracy: {check_accuracy(train_data, hidden_weights, output_weights)}')
-
+    train_acc = check_accuracy(train_data, hidden_weights, output_weights)
+    test_acc = check_accuracy(test_data, hidden_weights, output_weights)
+    accuracy = np.array([0, train_acc, test_acc])
+    print(f'Initial accuracy: {train_acc} / {test_acc}')
+    for e in range(EPOCHS):
+        for i in range(3):
+            # begin forward feed
+            hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
+            # Append 1 for bias in hidden layer
+            bias = np.ones(1, dtype=np.uint8)
+            hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
+            output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
+            # set target values
+            target_matrix = np.full(CLASSES, .1)
+            target_matrix[train_data.labels[i]] = .9
+            # find delta for output nodes
+            d_output = np.multiply(np.multiply(output, (1 - output)), (target_matrix - output))
+            # find delta for hidden nodes
+            d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights[:,:HIDDEN_NODES]))
+            # find weight change for hidden to output
+            d_hidden_to_output = np.multiply(ETA, np.outer(d_output, hidden_sums_b)) + np.multiply(ALPHA, output_moment)
+            # store changes as momentum
+            output_moment = d_hidden_to_output
+            # adjust weights
+            output_weights += d_hidden_to_output
+            # find weight change for input to hidden
+            d_input_to_hidden = np.multiply(ETA, np.outer(d_hidden, train_data.images[i])) + np.multiply(ALPHA, hidden_moment)
+            # store changes as momentum
+            hidden_moment = d_input_to_hidden
+            # adjust weights
+            hidden_weights += d_input_to_hidden
+        train_acc = check_accuracy(train_data, hidden_weights, output_weights)
+        test_acc = check_accuracy(test_data, hidden_weights, output_weights)
+        print(f'Epoch {e + 1} Train/Test accuracy: {train_acc} / {test_acc}')
+        np.append(accuracy, np.array([e + 1, train_acc, test_acc]))
+    with open(LOGFILE, 'a') as file:
+        file.write(str(accuracy))
 
