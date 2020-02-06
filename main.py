@@ -100,9 +100,9 @@ def make_conf_matrix(data, hidden_weights, output_weights):
     :param data: dataset as Data object
     :param hidden_weights: hidden weights as np array
     :param output_weights: output weights as np array
-    :return: np confusion matrix
+    :return: 2d array
     """
-    matrix = np.zeros((CLASSES, CLASSES))
+    matrix = [[0 for i in range(CLASSES)] for j in range(CLASSES)]
     for i in range(data.size):
         # begin forward feed
         hidden_sums = sigmoid(np.dot(data.images[i], np.transpose(hidden_weights)))
@@ -110,8 +110,8 @@ def make_conf_matrix(data, hidden_weights, output_weights):
         bias = np.ones(1, dtype=np.uint8)
         hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
         output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
-        predict = np.argmax(output)
-        matrix[predict, data.labels[i]] += 1
+        predict = int(np.argmax(output))
+        matrix[predict][data.labels[i]] += 1
     return matrix
 
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     # begin training
     train_acc = check_accuracy(train_data, hidden_weights, output_weights)
     test_acc = check_accuracy(test_data, hidden_weights, output_weights)
-    accuracy = np.array([0, train_acc, test_acc])
+    accuracy = [[0, train_acc, test_acc]]
     print(f'Initial accuracy: {train_acc} / {test_acc}')
     for e in range(EPOCHS):
         for i in range(train_data.size):
@@ -166,14 +166,14 @@ if __name__ == '__main__':
         train_acc = check_accuracy(train_data, hidden_weights, output_weights)
         test_acc = check_accuracy(test_data, hidden_weights, output_weights)
         print(f'Epoch {e + 1} Train/Test accuracy: {train_acc} / {test_acc}')
-        np.append(accuracy, np.array([e + 1, train_acc, test_acc]))
+        accuracy.append([e + 1, train_acc, test_acc])
     matrix = make_conf_matrix(test_data, hidden_weights, output_weights)
     print(f'Accuracy: {accuracy}')
     print(f'Confusion Matrix: {matrix}')
     with open(LOGFILE, 'a') as file:
-        file.write('Accuracy per Epoch:')
+        file.write('Accuracy per Epoch:\n')
         file.write(str(accuracy))
-        file.write('\nConfusion Matrix:')
+        file.write('\nConfusion Matrix:\n')
         file.write(str(matrix))
 
 
