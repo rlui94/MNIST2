@@ -64,6 +64,21 @@ def toy():
         print(f'{n}th hidden_weights: {hidden_weights[n]}')
 
 
+def check_accuracy(data, hidden_weights, output_weights):
+    correct = 0
+    for i in range(data.size):
+        # begin forward feed
+        hidden_sums = sigmoid(np.dot(data.images[i], np.transpose(hidden_weights)))
+        # Append 1 for bias in hidden layer
+        bias = np.ones(1, dtype=np.uint8)
+        hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
+        output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
+        predict = np.argmax(output)
+        if predict == data.labels[i]:
+            correct += 1
+    return correct/data.size
+
+
 if __name__ == '__main__':
     # get MNIST data
     mndata = MNIST('./images/')
@@ -80,27 +95,23 @@ if __name__ == '__main__':
     output_weights = np.random.rand(CLASSES, HIDDEN_NODES + 1) - .5
     output_moment = np.zeros((CLASSES, HIDDEN_NODES + 1))
     # begin training
-    for i in range(1):
+    print(f'Initial accuracy: {check_accuracy(train_data, hidden_weights, output_weights)}')
+    for i in range(3):
         # begin forward feed
         hidden_sums = sigmoid(np.dot(train_data.images[i], np.transpose(hidden_weights)))
         # Append 1 for bias in hidden layer
         bias = np.ones(1, dtype=np.uint8)
         hidden_sums_b = np.concatenate((hidden_sums, bias), axis=0)
-        print(f'h_sum: {hidden_sums}')
         output = sigmoid(np.dot(hidden_sums_b, np.transpose(output_weights)))
-        print(f'output:{output}')
         # set target values
         target_matrix = np.full(CLASSES, .1)
         target_matrix[train_data.labels[i]] = .9
         # find delta for output nodes
         d_output = np.multiply(np.multiply(output, (1 - output)), (target_matrix - output))
-        print(f'd_output:{d_output}')
         # find delta for hidden nodes
         d_hidden = np.multiply(np.multiply(hidden_sums, (1 - hidden_sums)), np.dot(d_output, output_weights[:,:HIDDEN_NODES]))
-        print(f'd_hidden: {d_hidden}')
         # find weight change for hidden to output
         d_hidden_to_output = np.multiply(ETA, np.outer(d_output, hidden_sums_b)) + np.multiply(ALPHA, output_moment)
-        print(f'h_to_o:{d_hidden_to_output}')
         # store changes as momentum
         output_moment = d_hidden_to_output
         # adjust weights
@@ -111,5 +122,6 @@ if __name__ == '__main__':
         hidden_moment = d_input_to_hidden
         # adjust weights
         hidden_weights += d_input_to_hidden
+        print(f'{i} accuracy: {check_accuracy(train_data, hidden_weights, output_weights)}')
 
 
